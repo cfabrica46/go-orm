@@ -44,7 +44,7 @@ func main() {
 
 	var user User
 
-	db.Table("user_posts").Select("users.id,users.username,users.password").Joins("INNER JOIN users ON users.id=user_posts.user_id").Joins("INNER JOIN posts ON posts.id=user_posts.post_id").Where("posts.id=?", 1).Scan(&user)
+	db.Model(&User_Post{}).Select("users.id,users.username,users.password").Joins("INNER JOIN users ON users.id=user_posts.user_id").Joins("INNER JOIN posts ON posts.id=user_posts.post_id").Where("posts.id=?", 1).Scan(&user)
 
 	fmt.Println(user)
 }
