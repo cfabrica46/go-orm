@@ -11,18 +11,25 @@ import (
 type User struct {
 	ID                 int
 	Username, Password string
+	Posts              []Post `gorm:"many2many:user_posts;foreignKey:ID;joinForeignKey:User_ID;References:User_ID;JoinReferences:User_ID"`
 }
 
 type Post struct {
-	ID   int
-	Post string
-}
-
-type User_Post struct {
-	User_ID, Post_ID int
+	ID, User_ID int
+	Post        string
 }
 
 func main() {
+
+	user := User{
+		ID:       1,
+		Username: "cfabrica46",
+		Password: "01234",
+		Posts: []Post{
+			{User_ID: 1, Post: "uwu"},
+			{User_ID: 1, Post: "owo"},
+		},
+	}
 
 	db, err := gorm.Open(sqlite.Open("databases.db"), &gorm.Config{})
 
@@ -30,21 +37,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = db.AutoMigrate(&User{}, &Post{}, &User_Post{})
+	err = db.AutoMigrate(&User{}, &Post{})
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db.Create(&User{ID: 1, Username: "cfabrica46", Password: "01234"})
+	db.Create(&user)
 
-	db.Create(&Post{ID: 1, Post: "uwu"})
+	var posts []Post
 
-	db.Create(&User_Post{User_ID: 1, Post_ID: 1})
+	err = db.Model(&user).Association("Posts").Find(&posts)
 
-	var user User
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	db.Model(&User_Post{}).Select("users.id,users.username,users.password").Joins("INNER JOIN users ON users.id=user_posts.user_id").Joins("INNER JOIN posts ON posts.id=user_posts.post_id").Where("posts.id=?", 1).Scan(&user)
-
-	fmt.Println(user)
+	fmt.Println(posts)
 }
